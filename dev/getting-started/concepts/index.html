@@ -2410,19 +2410,19 @@
 <hr />
 <h2 id="how-afquery-stores-data">How AFQuery Stores Data</h2>
 <h3 id="per-variant-bitmaps">Per-Variant Bitmaps</h3>
-<p>For each variant row, AFQuery stores three <a href="https://roaringbitmap.org/">Roaring Bitmaps</a>:</p>
+<p>For each variant row, AFQuery stores per-sample genotype information as <a href="https://roaringbitmap.org/">Roaring Bitmaps</a>. Three of them drive every query:</p>
 <ul>
-<li><strong><code>het_bitmap</code></strong> — bit set for each sample that is heterozygous (GT=0/1 or 1/0)</li>
-<li><strong><code>hom_bitmap</code></strong> — bit set for each sample that is homozygous alt (GT=1/1 or GT=1)</li>
-<li><strong><code>fail_bitmap</code></strong> bit set for each sample called with FILTER≠PASS</li>
+<li><strong><code>het_bitmap</code></strong> — sample is heterozygous (<code>GT=0/1</code>) with <code>FILTER=PASS</code></li>
+<li><strong><code>hom_bitmap</code></strong> — sample is homozygous alt (<code>GT=1/1</code>, or <code>GT=1</code> on haploid regions) with <code>FILTER=PASS</code></li>
+<li><strong><code>fail_bitmap</code></strong> — the sample's call at this site has <code>FILTER≠PASS</code></li>
 </ul>
-<p>Each sample has a stable integer ID (0-indexed). The bit position in the bitmap equals the sample ID.</p>
+<p>Each sample has a stable integer ID (0-indexed). The bit position in the bitmap equals the sample ID. Databases built with coverage-quality filters carry two additional bitmaps — see <a href="../../reference/data-model/#parquet-schema">Data Model</a>.</p>
 <h3 id="parquet-storage">Parquet Storage</h3>
 <p>Bitmaps are serialized and stored in Parquet files, partitioned by chromosome and 1-Mbp bucket:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>variants/
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  chr1/
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    bucket_0/   ← positions 0–999,999
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    bucket_1/   ← positions 1,000,000–1,999,999
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    bucket_0.parquet   ← positions 0–999,999
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    bucket_1.parquet   ← positions 1,000,000–1,999,999
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    ...
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  chr2/
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    ...

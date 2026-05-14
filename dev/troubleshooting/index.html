@@ -2242,7 +2242,7 @@
 <h2 id="wrong-bucket-ids-silent-bug">Wrong Bucket IDs (Silent Bug)</h2>
 <p><strong>Symptom:</strong> Queries return no results for known variants, but the database was built without errors.</p>
 <p><strong>Cause:</strong> A DuckDB float-division rounding bug was present in older AFQuery versions. When computing bucket IDs, <code>CAST(pos / 1000000 AS BIGINT)</code> rounds floats incorrectly (e.g., position 1,500,000 → bucket 2 instead of 1).</p>
-<p><strong>Fix:</strong> Upgrade to the latest AFQuery version. The fix uses <code>CAST(pos AS BIGINT) / 1000000</code> for correct integer division. Rebuild the database after upgrading.</p>
+<p><strong>Fix:</strong> Upgrade to the latest AFQuery version. The fix uses <code>CAST(pos AS BIGINT) // 1000000</code> — the integer-division operator — for correct bucket IDs. Rebuild the database after upgrading.</p>
 <hr />
 <h2 id="compact-takes-a-long-time">Compact Takes a Long Time</h2>
 <p><strong>Symptom:</strong> <code>afquery update-db --compact</code> runs for many minutes or hours.</p>

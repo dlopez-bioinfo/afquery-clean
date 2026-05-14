@@ -2267,12 +2267,12 @@
 <tr>
 <td><strong>n_eligible</strong></td>
 <td>int</td>
-<td>Number of samples in the eligible set (after sex/phenotype/tech filters)</td>
+<td>Number of eligible samples — those passing the sex/phenotype/tech filters <em>and</em> covered at this position</td>
 </tr>
 <tr>
 <td><strong>N_FAIL</strong></td>
 <td>int</td>
-<td>Number of eligible samples with a non-ref allele called but FILTER≠PASS at this position. These samples are counted <em>only</em> in N_FAIL — not in N_HET, N_HOM_ALT, or N_HOM_REF.</td>
+<td>Number of eligible samples whose call at this position had FILTER≠PASS. These samples are counted <em>only</em> in N_FAIL — not in N_HET, N_HOM_ALT, or N_HOM_REF — but they stay eligible and still count toward AN.</td>
 </tr>
 <tr>
 <td><strong>N_NO_COVERAGE</strong></td>

@@ -2312,7 +2312,7 @@
 <h2 id="pattern-2-merged-database-with-phenotype-codes">Pattern 2: Merged Database with Phenotype Codes</h2>
 <p>All samples in one database, with phenotype codes distinguishing cohorts.</p>
 <h3 id="manifest-design">Manifest Design</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sample_id   vcf_path    sex technology  phenotype_codes
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sample_name vcf_path    sex tech_name   phenotype_codes
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>CARD_001    /data/card/001.vcf.gz   female  wgs cardiology,EUR,control
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>CARD_002    /data/card/002.vcf.gz   male    wgs cardiology,EUR,case_HCM
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>NEURO_001   /data/neuro/001.vcf.gz  female  wes neurology,AFR,case_epilepsy
@@ -2358,7 +2358,7 @@
 </tr>
 <tr>
 <td>One annotation pass covers all cohorts</td>
-<td>Adding a new cohort requires <code>afquery update</code></td>
+<td>Adding a new cohort requires <code>afquery update-db</code></td>
 </tr>
 <tr>
 <td>Flexible ad-hoc stratification</td>
@@ -2392,7 +2392,11 @@
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>afquery<span class="w"> </span>annotate<span class="w"> </span>--db<span class="w"> </span>/databases/institutional/cardiology/<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span>--input<span class="w"> </span>patient.vcf.gz<span class="w"> </span>--output<span class="w"> </span>step1.vcf.gz
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Annotate against shared controls (use a different INFO prefix via Python API)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Annotate against shared controls in a second pass</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Note: the AFQUERY_* INFO fields are overwritten on each pass — if you need</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># both sets of frequencies, extract the values from step1.vcf.gz first.</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>afquery<span class="w"> </span>annotate<span class="w"> </span>--db<span class="w"> </span>/databases/shared/combined_controls/<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span>--input<span class="w"> </span>step1.vcf.gz<span class="w"> </span>--output<span class="w"> </span>step2.vcf.gz
 </code></pre></div>
 <hr />
 <h2 id="decision-matrix">Decision Matrix</h2>

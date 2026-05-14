@@ -2222,18 +2222,16 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;db_dir&gt;/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── manifest.json          # Build configuration
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── metadata.sqlite        # Sample/phenotype/technology/changelog metadata
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── variants/              # Hive-partitioned Parquet variant data
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── variants/              # Parquet variant data, partitioned by chromosome and bucket
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── chr1/
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   ├── bucket_0/      # Positions 0–999,999
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   │   └── data.parquet
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   ├── bucket_1/      # Positions 1,000,000–1,999,999
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   │   └── data.parquet
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   └── ...
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   ├── chr2/
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   └── ...
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>└── capture/               # WES coverage interval trees
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    ├── wes_v1.pkl
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    └── wes_v2.pkl
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   │   ├── bucket_0.parquet      # Positions 0–999,999
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   ├── bucket_1.parquet      # Positions 1,000,000–1,999,999
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   └── ...
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   ├── chr2/
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   └── ...
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>└── capture/               # WES coverage interval trees
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ├── wes_v1.pkl
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    └── wes_v2.pkl
 </code></pre></div>
 <hr />
 <h2 id="manifestjson">manifest.json</h2>
@@ -2253,14 +2251,9 @@
 <td><code>"GRCh37"</code> or <code>"GRCh38"</code></td>
 </tr>
 <tr>
-<td><code>schema_version</code></td>
+<td><code>version</code></td>
 <td>string</td>
-<td><code>"2.0"</code></td>
-</tr>
-<tr>
-<td><code>pass_only_filter</code></td>
-<td>bool</td>
-<td>Whether FILTER=PASS was enforced during ingest</td>
+<td>manifest.json format version</td>
 </tr>
 <tr>
 <td><code>db_version</code></td>
@@ -2268,14 +2261,29 @@
 <td>User-specified version label</td>
 </tr>
 <tr>
+<td><code>sample_count</code></td>
+<td>int</td>
+<td>Number of samples at build time</td>
+</tr>
+<tr>
+<td><code>schema_version</code></td>
+<td>string</td>
+<td><code>"2.0"</code>, or <code>"3.0"</code> when the database was built with coverage-quality filters</td>
+</tr>
+<tr>
+<td><code>pass_only_filter</code></td>
+<td>bool</td>
+<td>Always <code>true</code> — PASS-only counting is always enforced</td>
+</tr>
+<tr>
+<td><code>coverage_filter</code></td>
+<td>object</td>
+<td>The <code>min_dp</code> / <code>min_gq</code> / <code>min_qual</code> / <code>min_covered</code> thresholds used at build time (all <code>0</code> when unused)</td>
+</tr>
+<tr>
 <td><code>created_at</code></td>
 <td>string</td>
 <td>ISO 8601 timestamp</td>
-</tr>
-<tr>
-<td><code>manifest_path</code></td>
-<td>string</td>
-<td>Path to original manifest TSV</td>
 </tr>
 </tbody>
 </table>
@@ -2459,21 +2467,32 @@
 <tr>
 <td><code>het_bitmap</code></td>
 <td><code>large_binary</code></td>
-<td>Serialized Roaring Bitmap of heterozygous sample IDs</td>
+<td>Roaring Bitmap of heterozygous, <code>FILTER=PASS</code> sample IDs</td>
 </tr>
 <tr>
 <td><code>hom_bitmap</code></td>
 <td><code>large_binary</code></td>
-<td>Serialized Roaring Bitmap of homozygous alt sample IDs</td>
+<td>Roaring Bitmap of homozygous-alt, <code>FILTER=PASS</code> sample IDs</td>
 </tr>
 <tr>
 <td><code>fail_bitmap</code></td>
 <td><code>large_binary</code></td>
-<td>Serialized Roaring Bitmap of FILTER≠PASS sample IDs</td>
+<td>Roaring Bitmap of sample IDs whose call has <code>FILTER≠PASS</code> at this site</td>
+</tr>
+<tr>
+<td><code>filtered_bitmap</code></td>
+<td><code>large_binary</code></td>
+<td>Roaring Bitmap of WES non-carriers with uncertain coverage</td>
+</tr>
+<tr>
+<td><code>quality_pass_bitmap</code></td>
+<td><code>large_binary</code></td>
+<td>Roaring Bitmap of carriers meeting the DP/GQ/QUAL thresholds</td>
 </tr>
 </tbody>
 </table>
 <p>Rows are sorted by <code>(pos, alt)</code> within each bucket.</p>
+<p><code>filtered_bitmap</code> and <code>quality_pass_bitmap</code> back the <a href="../../advanced/coverage-evidence/">coverage-evidence</a> feature. The columns are always present, but they are empty unless the database was built with coverage-quality filters (schema version <code>3.0</code>).</p>
 <div class="admonition important">
 <p class="admonition-title">large_utf8 / large_binary</p>
 <p>AFQuery uses <code>large_utf8</code> and <code>large_binary</code> (64-bit offsets) rather than <code>utf8</code> / <code>binary</code> (32-bit). This is required for compatibility with DuckDB's Parquet reader on large chromosomes.</p>
@@ -2483,9 +2502,10 @@
 <p>Bitmaps use the <a href="https://roaringbitmap.org/">Roaring Bitmap</a> format, serialized by pyroaring's portable serialization.</p>
 <ul>
 <li>Bit position = sample ID (0-indexed integer)</li>
-<li><code>het_bitmap</code>: bit set iff sample is heterozygous at this variant</li>
-<li><code>hom_bitmap</code>: bit set iff sample is homozygous alt at this variant</li>
-<li><code>fail_bitmap</code>: bit set iff sample has genotype AC&gt;0 AND FILTER≠PASS</li>
+<li><code>het_bitmap</code>: bit set iff the sample is heterozygous with <code>FILTER=PASS</code></li>
+<li><code>hom_bitmap</code>: bit set iff the sample is homozygous alt with <code>FILTER=PASS</code></li>
+<li><code>fail_bitmap</code>: bit set iff the sample's call has <code>FILTER≠PASS</code> — either a carrier whose call failed a filter, or a missing genotype (<code>./.</code>) at a failed site</li>
+<li><code>filtered_bitmap</code>, <code>quality_pass_bitmap</code>: see the Parquet schema above; both are empty unless the database was built with coverage-quality filters</li>
 </ul>
 <p>To deserialize in Python:
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pyroaring</span><span class="w"> </span><span class="kn">import</span> <span class="n">BitMap</span>
@@ -2507,10 +2527,10 @@
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">DuckDB integer arithmetic</p>
-<p>When computing bucket IDs in DuckDB SQL, always use:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">CAST</span><span class="p">(</span><span class="n">pos</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000000</span>
+<p>When computing bucket IDs in DuckDB SQL, always use the integer-division operator:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">CAST</span><span class="p">(</span><span class="n">pos</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">)</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">1000000</span>
 </code></pre></div>
-Not <code>CAST(pos / 1000000 AS BIGINT)</code> — DuckDB performs float division first and rounds, producing wrong bucket IDs.</p>
+Not <code>CAST(pos / 1000000 AS BIGINT)</code> — the <code>/</code> operator does float division, and casting the rounded result afterwards produces wrong bucket IDs.</p>
 </div>
 <hr />
 <p>See <a href="../../advanced/filter-pass-tracking/">FILTER=PASS Tracking</a>.</p>

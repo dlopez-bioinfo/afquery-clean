@@ -2351,7 +2351,7 @@
 </tr>
 <tr>
 <td><strong>n_eligible</strong></td>
-<td>Samples in the filtered set (before coverage or ploidy adjustments). Here, 10 = no filter applied.</td>
+<td>Eligible samples at this position — those passing the metadata filters <em>and</em> covered here. Ploidy is applied afterwards, to AN. Here, 10 = no filter applied and every sample is covered.</td>
 </tr>
 <tr>
 <td><strong>N_HET</strong></td>
@@ -2372,7 +2372,7 @@
 </tbody>
 </table>
 <p>For <code>chr1:925952</code>: AN=20 = 10 diploid samples × 2 alleles; AC=6 = 4 het samples (1 copy each) + 1 hom-alt (2 copies).</p>
-<p><strong>Accounting identity:</strong> <code>n_eligible = N_HET + N_HOM_ALT + N_HOM_REF + N_FAIL</code> always holds (10 = 4+1+5+0 ✓).</p>
+<p><strong>Accounting identity:</strong> <code>n_eligible = N_HET + N_HOM_ALT + N_HOM_REF + N_FAIL + N_NO_COVERAGE</code> always holds. <code>N_NO_COVERAGE</code> is 0 here (it only becomes non-zero with a coverage-evidence filter), so 10 = 4+1+5+0+0 ✓.</p>
 <h3 id="n_fail-in-practice">N_FAIL in practice</h3>
 <p>Some variants have samples whose call passed genotyping but failed a quality filter in the source VCF. Query the variant at <code>chr1:946000</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>afquery<span class="w"> </span>query<span class="w"> </span>--db<span class="w"> </span>./demo_db/<span class="w"> </span>--locus<span class="w"> </span>chr1:946000

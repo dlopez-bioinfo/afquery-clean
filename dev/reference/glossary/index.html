@@ -2293,7 +2293,7 @@
 <h2 id="eligible-sample">Eligible Sample</h2>
 <p>A sample that passes all query filters (sex, phenotype, technology) and has coverage at the queried position. Only eligible samples contribute to AC and AN. See <a href="../../guides/sample-filtering/">Sample Filtering</a>.</p>
 <h2 id="n_fail">N_FAIL</h2>
-<p>The count of eligible samples at a position where the genotype call had FILTER≠PASS in the source VCF. These samples are not counted in AC/AN. See <a href="../../advanced/filter-pass-tracking/">FILTER=PASS Tracking</a>.</p>
+<p>The count of eligible samples whose call at a position had FILTER≠PASS in the source VCF. These samples are excluded from AC, but they remain eligible and so still count toward AN. See <a href="../../advanced/filter-pass-tracking/">FILTER=PASS Tracking</a>.</p>
 <h2 id="n_no_coverage">N_NO_COVERAGE</h2>
 <p>The count of eligible samples whose tech lacks coverage evidence at this position. Excluded from <code>N_HOM_REF</code> to keep AC/AN conservative. Always <code>0</code> unless a coverage-evidence filter (<code>--min-pass</code>, <code>--min-observed</code>, <code>--min-quality-evidence</code>, or build-time <code>--min-covered</code>) is active. See <a href="../../advanced/coverage-evidence/">Coverage Evidence</a>.</p>
 <h2 id="manifest">Manifest</h2>
@@ -2309,7 +2309,7 @@
 <h2 id="roaring-bitmap">Roaring Bitmap</h2>
 <p>A compressed bitset data structure that efficiently stores sets of integers. AFQuery uses Roaring Bitmaps (via the <code>pyroaring</code> library) to represent which samples carry a given genotype. Typical compression: ~2 bytes per sample per variant. See <a href="https://roaringbitmap.org/">roaringbitmap.org</a>.</p>
 <h2 id="schema-version">Schema Version</h2>
-<p>The AFQuery database format version stored in <code>manifest.json</code>. Each variant stores <code>het_bitmap</code>, <code>hom_bitmap</code>, and <code>fail_bitmap</code>. See <a href="../data-model/">Data Model</a>.</p>
+<p>The AFQuery database format version stored in <code>manifest.json</code> — <code>2.0</code>, or <code>3.0</code> when the database was built with coverage-quality filters. See <a href="../data-model/">Data Model</a>.</p>
 <h2 id="technology">Technology</h2>
 <p>The sequencing platform or assay type assigned to a sample (e.g., <code>wgs</code>, <code>wes_v1</code>, <code>panel_cardiac</code>). Determines capture index eligibility and enables technology-stratified queries. See <a href="../../use-cases/technology-integration/">Technology Integration</a>.</p>
 

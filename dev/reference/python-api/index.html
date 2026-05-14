@@ -2863,7 +2863,7 @@ Variants not found in the database are omitted.</p>
 <a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>    <span class="n">N_HET</span><span class="p">:</span> <span class="nb">int</span>               <span class="c1"># Heterozygous count</span>
 <a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>    <span class="n">N_HOM_ALT</span><span class="p">:</span> <span class="nb">int</span>           <span class="c1"># Homozygous alt count</span>
 <a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>    <span class="n">N_HOM_REF</span><span class="p">:</span> <span class="nb">int</span>           <span class="c1"># Homozygous ref count</span>
-<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>    <span class="n">N_FAIL</span><span class="p">:</span> <span class="nb">int</span>              <span class="c1"># Samples with alt allele called but FILTER≠PASS</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>    <span class="n">N_FAIL</span><span class="p">:</span> <span class="nb">int</span>              <span class="c1"># Eligible samples whose call had FILTER≠PASS (excluded from AC, kept in AN)</span>
 <a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>    <span class="n">N_NO_COVERAGE</span><span class="p">:</span> <span class="nb">int</span>       <span class="c1"># Eligible samples whose tech lacks evidence (excluded from N_HOM_REF)</span>
 </code></pre></div>
 <p>The new genotype invariant is

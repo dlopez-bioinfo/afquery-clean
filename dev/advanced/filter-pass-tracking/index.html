@@ -2202,25 +2202,26 @@
 <li><code>PASS</code> or <code>.</code> (missing) — the variant passed all filters</li>
 <li>Any other value (e.g., <code>LowQual</code>, <code>VQSRTrancheSNP99.90to100.00</code>) — the variant failed one or more filters</li>
 </ul>
-<p>AFQuery default behavior:</p>
+<p>AFQuery's default behavior:</p>
 <ul>
-<li><strong>PASS-only</strong>: only <code>FILTER=PASS</code> variants are counted in AC/AN. This is always enforced.</li>
+<li>Only <code>FILTER=PASS</code> calls contribute to <strong>AC</strong> (and therefore to <strong>AF</strong>). This is always enforced.</li>
+<li><strong>AN</strong> is not affected by the filter — it counts every eligible sample at the position, failed calls included.</li>
 </ul>
 <hr />
 <h2 id="fail_bitmap">fail_bitmap</h2>
 <p>AFQuery stores a third bitmap per variant alongside <code>het_bitmap</code> and <code>hom_bitmap</code>:</p>
 <ul>
-<li><strong><code>fail_bitmap</code></strong> — bit set for each sample that has a non-ref genotype (AC&gt;0) AND <code>FILTER≠PASS</code></li>
+<li><strong><code>fail_bitmap</code></strong> — bit set for each sample whose call at this site has <code>FILTER≠PASS</code>. In practice this is two cases: a sample that carries the alt allele but whose call failed a filter, and a sample with a missing genotype (<code>./.</code>) at a site that itself failed a filter.</li>
 </ul>
-<p>This means:</p>
+<p>What this means for a sample in <code>fail_bitmap</code>:</p>
 <ul>
-<li>A sample in <code>fail_bitmap</code> was genotyped with the alt allele but the call failed QC</li>
-<li>Such samples are <strong>not</strong> counted in AC/AN (they don't affect AF)</li>
-<li>Their count is exposed as <code>N_FAIL</code></li>
+<li>Its alt alleles are <strong>not</strong> counted in AC, so it does not raise AF.</li>
+<li>It is still an eligible sample, so it <strong>is</strong> counted in AN. The failed call lowers AF by sitting in the denominator without contributing to the numerator.</li>
+<li>Its count is exposed separately as <code>N_FAIL</code>.</li>
 </ul>
 <hr />
 <h2 id="database-creation">Database Creation</h2>
-<p>The <code>fail_bitmap</code> is always written and always tracks PASS-only ingestion:</p>
+<p>The <code>fail_bitmap</code> is always written, regardless of build options:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>afquery<span class="w"> </span>create-db<span class="w"> </span>--manifest<span class="w"> </span>manifest.tsv<span class="w"> </span>--output-dir<span class="w"> </span>./db/<span class="w"> </span>--genome-build<span class="w"> </span>GRCh38
 </code></pre></div>
 <hr />
@@ -2229,9 +2230,9 @@
 <p>The <code>N_FAIL</code> count is shown automatically in query output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>afquery<span class="w"> </span>query<span class="w"> </span>--db<span class="w"> </span>./db/<span class="w"> </span>--locus<span class="w"> </span>chr1:925952
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>chr1:925952 G&gt;A  AC=142  AN=2742  AF=0.0518  n_eligible=1371  N_HET=138  N_HOM_ALT=2  N_HOM_REF=1231  N_FAIL=7
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>chr1:925952 G&gt;A  AC=142  AN=2742  AF=0.0518  n_eligible=1371  N_HET=138  N_HOM_ALT=2  N_HOM_REF=1224  N_FAIL=7
 </code></pre></div>
-<p><code>N_FAIL=7</code> means 7 eligible samples had the alt allele called but with FILTER≠PASS.</p>
+<p><code>N_FAIL=7</code> means 7 eligible samples had a call with FILTER≠PASS at this site. They are part of <code>n_eligible</code> (and of AN), so the genotype counts still add up: 138 + 2 + 1224 + 7 = 1371.</p>
 <h3 id="python-api">Python API</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">results</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;chr1&quot;</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="mi">925952</span><span class="p">)</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
@@ -2247,7 +2248,7 @@
 <p>Each carrier row shows its <code>filter</code> column as <code>PASS</code> or <code>FAIL</code>, along with sample metadata (technology, phenotype codes). This helps pinpoint whether failures cluster in a specific technology or sample group. See <a href="../../guides/variant-info/">Variant Info</a> for full options.</p>
 <hr />
 <h2 id="vcf-annotation">VCF Annotation</h2>
-<p>AFQuery adds an additional INFO field to annotated VCFs:</p>
+<p>Among the INFO fields <code>afquery annotate</code> writes, one reports the failed-call count:</p>
 <table>
 <thead>
 <tr>
@@ -2260,15 +2261,16 @@
 <tr>
 <td><code>AFQUERY_N_FAIL</code></td>
 <td>Integer</td>
-<td>Eligible samples with FILTER≠PASS at this variant</td>
+<td>Eligible samples with <code>FILTER≠PASS</code> at this variant</td>
 </tr>
 </tbody>
 </table>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>afquery<span class="w"> </span>annotate<span class="w"> </span>--db<span class="w"> </span>./db/<span class="w"> </span>--input<span class="w"> </span>variants.vcf<span class="w"> </span>--output<span class="w"> </span>annotated.vcf
 </code></pre></div>
+<p>See <a href="../../getting-started/understanding-output/#vcf-annotation-fields">Understanding Output</a> for the full set of <code>AFQUERY_*</code> fields.</p>
 <hr />
 <h2 id="pass-only-enforcement">PASS-Only Enforcement</h2>
-<p>AF reflects the quality-filtered allele frequency — the frequency of the alt allele among high-quality calls. This is appropriate for most clinical and research use cases. PASS-only ingestion is always enforced.</p>
+<p>PASS-only counting is always enforced and cannot be turned off. It applies to the numerator only: a failed call never adds an alt allele to AC, but the sample stays in the eligible set and so remains in AN. The result is a deliberately conservative AF — a failed carrier weighs on the denominator without lifting the numerator, which is the safe direction for clinical and research use.</p>
 <hr />
 <h2 id="next-steps">Next Steps</h2>
 <ul>

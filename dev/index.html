@@ -2161,7 +2161,7 @@
 <li><strong>Ploidy-aware</strong> — correct AN on chrX PAR/non-PAR, chrY, and chrM.</li>
 <li><strong>Technology-aware AN</strong> — per-position capture BED intersection across WGS, WES kits, and panels.</li>
 <li><strong>Carrier lookup</strong> — list samples carrying any variant with full metadata (sex, tech, phenotypes, genotype, FILTER status).</li>
-<li><strong>VCF annotation</strong> — add <code>AFQUERY_AC/AN/AF/N_HET/N_HOM_ALT/N_HOM_REF/N_FAIL</code> INFO fields from any sample subset.</li>
+<li><strong>VCF annotation</strong> — add <code>AFQUERY_AC/AN/AF/N_HET/N_HOM_ALT/N_HOM_REF/N_FAIL/N_NO_COVERAGE</code> INFO fields from any sample subset.</li>
 <li><strong>Audit changelog</strong> — every database operation is recorded for reproducibility.</li>
 </ul>
 <hr />
@@ -2170,7 +2170,7 @@
     A["🔍 Input VCFs&lt;br/&gt;single-sample"]
     B["📥 Ingest&lt;br/&gt;cyvcf2 reads VCFs →&lt;br/&gt;per-sample Parquet files emitted"]
     C["🏗️ Build&lt;br/&gt;DuckDB aggregates per bucket →&lt;br/&gt;Roaring Bitmaps → Parquet"]
-    D["💾 Database on Disk&lt;br/&gt;variants/chr*/bucket_*/&lt;br/&gt;capture/*.pkl&lt;br/&gt;metadata.sqlite&lt;br/&gt;manifest.json"]
+    D["💾 Database on Disk&lt;br/&gt;variants/chr*/bucket_*.parquet&lt;br/&gt;capture/*.pkl&lt;br/&gt;metadata.sqlite&lt;br/&gt;manifest.json"]
     E["⚡ Query Engine&lt;br/&gt;Load bitmap → filter samples →&lt;br/&gt;compute AC/AN/AF&lt;br/&gt;~10-100ms"]
     F["📊 Annotate"]
     G["🔄 Update"]

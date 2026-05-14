@@ -2376,7 +2376,7 @@
 </tr>
 </tbody>
 </table>
-<p>Scaling is near-linear up to ~32 cores; beyond that, I/O and SQLite contention limit further gains.</p>
+<p>Scaling is near-linear up to ~32 cores; beyond that, disk I/O contention limits further gains.</p>
 <p>Total RAM required: <code>build_threads × build_memory</code></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 16 threads × 2GB = 32 GB peak</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>afquery<span class="w"> </span>create-db<span class="w"> </span>...<span class="w"> </span>--build-threads<span class="w"> </span><span class="m">16</span><span class="w"> </span>--build-memory<span class="w"> </span>2GB
@@ -2394,7 +2394,7 @@
 <pre class="mermaid"><code>graph TD
     A["Query Request&lt;br/&gt;chr1:925952"]
     B["Open DuckDB&lt;br/&gt;connection"]
-    C["Locate Parquet&lt;br/&gt;bucket_0/data.parquet"]
+    C["Locate Parquet&lt;br/&gt;bucket_0.parquet"]
     D["Read rows&lt;br/&gt;matching pos"]
     E["Deserialize&lt;br/&gt;bitmaps"]
     F["Bitmap AND&lt;br/&gt;with eligible&lt;br/&gt;sample set"]
